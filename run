@@ -9,7 +9,7 @@ trap finish EXIT
 export test_port="8080"
 ./start &
 PID=$!
-sleep 2
+sleep 5
 ./test
 EX1=$?
 kill $PID 2>/dev/null
@@ -17,7 +17,7 @@ kill $PID 2>/dev/null
 export test_port="8081"
 ./start env &
 PID=$!
-sleep 2
+sleep 5
 ./test
 EX2=$?
 kill $PID 2>/dev/null
