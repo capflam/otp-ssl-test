@@ -11,6 +11,7 @@ export test_port="8080"
 PID=$!
 sleep 2
 ./test
+EX1=$?
 kill $PID 2>/dev/null
 
 export test_port="8081"
@@ -18,4 +19,11 @@ export test_port="8081"
 PID=$!
 sleep 2
 ./test
+EX2=$?
 kill $PID 2>/dev/null
+
+if [[ $EX1 -eq 0 ]] && [[ $EX2 -eq 0 ]]; then
+    exit 0
+else
+    exit -1
+fi
