@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+test_host="127.0.0.1"
+#test_port="8080"
+
+# from https://raymii.org/s/articles/Check_servers_for_the_Poodle_bug.html
+
+echo | timeout 3 openssl s_client -connect ${test_host}:${test_port} >/dev/null 2>&1
+if [[ $? != 0 ]]; then
+	echo "UNKNOWN: ${test_host} timeout or connection error"
+else
+	echo | openssl s_client -connect ${test_host}:${test_port} -ssl3 2>&1 | grep -q 'Protocol  : SSLv3' && {
+        echo "FAIL: ${test_host} vulnerable; sslv3 connection accepted"
+        exit -1
+    } || {
+		echo "OK: ${test_host} Not vulnerable"
+    }
+fi
