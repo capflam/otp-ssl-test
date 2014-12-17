@@ -1,6 +1,6 @@
 #!/usr/bin/env escript
 
-main([]) ->
+main(["opts"]) ->
     print("before start", ssl:versions()),
     ssl:start(),
     print("after start", ssl:versions()),
@@ -15,19 +15,33 @@ main(["env"]) ->
     application:set_env(ssl, protocol_version, [tlsv1]),
     print("after start/after set_env", ssl:versions()),
     main({opts, []});
+main(["env_and_opts"]) ->
+    application:load(ssl),
+    print("after load", ssl:versions()),
+    application:set_env(ssl, protocol_version, [tlsv1]),
+    print("before start/after set_env", ssl:versions()),
+    ssl:start(),
+    print("after start", ssl:versions()),
+    application:set_env(ssl, protocol_version, [tlsv1]),
+    print("after start/after set_env", ssl:versions()),
+    main({opts, [{versions, [tlsv1]}]});
 main({opts, Opts}) ->
+    io:fwrite("\tSocket options: ~p\n", [Opts]),
     Dir = filename:dirname(escript:script_name()),
     Listen = ssl:listen( list_to_integer(os:getenv("test_port"))
-                       , [ {certfile, Dir ++ "/yaws-cert.pem"}
+                       , [ {reuseaddr, true}
+                         , {certfile, Dir ++ "/yaws-cert.pem"}
                          , {keyfile, Dir ++ "/yaws-key.pem"}
                          ] ++ Opts),
     {ok, ListenSocket} = Listen,
-    loop(ListenSocket).
+    catch loop(ListenSocket),
+    ssl:close(ListenSocket).
 
 loop(ListenSocket) ->
     {ok, Socket} = ssl:transport_accept(ListenSocket),
     ssl:ssl_accept(Socket),
     print("accept", ssl:versions()),
+    io:fwrite("\tConnection info: ~p\n", [ssl:connection_info(Socket)]),
     ssl:close(Socket).
 
 print(When, [_, {supported, Versions}, _]) ->
