@@ -6,24 +6,14 @@ finish() {
 
 trap finish EXIT
 
-# Check SSLv3 support in openssl
-echo QUIT | openssl s_client -ssl3 -connect www.google.com:443  >/dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-    echo "====> SSLv3 is supported by OpenSSL (`openssl version`)"
-else
-    echo "====> SSLv3 is not supported by OpenSSL (`openssl version`)"
-fi
-
-echo
 export test_port="8080"
-./start opts &
+./start &
 PID=$!
 sleep 5
 ./test
 EX1=$?
 wait $PID 2>/dev/null
 
-echo
 export test_port="8081"
 ./start env &
 PID=$!
@@ -32,16 +22,7 @@ sleep 5
 EX2=$?
 wait $PID 2>/dev/null
 
-echo
-export test_port="8081"
-./start env_and_opts &
-PID=$!
-sleep 5
-./test
-EX3=$?
-wait $PID 2>/dev/null
-
-if [[ $EX1 -eq 0 ]] && [[ $EX2 -eq 0 ]]  && [[ $EX3 -eq 0 ]]; then
+if [[ $EX1 -eq 0 ]] && [[ $EX2 -eq 0 ]]; then
     exit 0
 else
     exit -1
